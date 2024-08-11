@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"text/template"
+
+	"url_shortener/storage"
 )
 
 func return404(w http.ResponseWriter) error {
@@ -22,24 +26,43 @@ func return404(w http.ResponseWriter) error {
 
 func NewHomeHandler(logger *log.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Handle 404
-		if r.URL.Path != "/" {
+		if r.URL.Path == "/" {
+			tmpl, err := template.ParseFiles("templates/index.html")
+			if err != nil {
+				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				logger.Printf("Path: / template.ParseFiles: %v\n", err)
+				return
+			}
+			if err := tmpl.Execute(w, nil); err != nil {
+				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				logger.Printf("Path: / tmpl.Execute: %v\n", err)
+				return
+			}
+		}
+
+		parts := strings.Split(r.URL.Path, "/")
+		if len(parts) != 2 {
 			if err := return404(w); err != nil {
 				logger.Printf("Path: / return404: %v\n", err)
 			}
 			return
 		}
 
-		tmpl, err := template.ParseFiles("templates/index.html")
+		id64, err := strconv.ParseInt(parts[1], 16, 64)
 		if err != nil {
-			http.Error(w, "Something went wrong", http.StatusInternalServerError)
-			logger.Printf("Path: / template.ParseFiles: %v\n", err)
+			logger.Printf("Path: / strconv.ParseInt: %v\n", err)
 			return
 		}
-		if err := tmpl.Execute(w, nil); err != nil {
-			http.Error(w, "Something went wrong", http.StatusInternalServerError)
-			logger.Printf("Path: / tmpl.Execute: %v\n", err)
-			return
+
+		id := int(id64)
+
+		if id >= len(storage.MockStorage) {
+			if err := return404(w); err != nil {
+				logger.Printf("Path: / return404: %v\n", err)
+			}
 		}
+
+		url := storage.MockStorage[id]
+		http.Redirect(w, r, url, http.StatusFound)
 	}
 }
