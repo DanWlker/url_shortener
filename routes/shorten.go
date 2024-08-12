@@ -10,7 +10,7 @@ import (
 	"url_shortener/storage"
 )
 
-func ShortenHandler(logger *log.Logger) http.HandlerFunc {
+func ShortenHandler(logger *log.Logger, storageClient storage.StorageClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "Something went wrong", http.StatusInternalServerError)
@@ -25,9 +25,13 @@ func ShortenHandler(logger *log.Logger) http.HandlerFunc {
 			return
 		}
 
-		storage.MockStorage = append(storage.MockStorage, urlParam)
-		// This should be in a async safe list that returns the id when appended, but whatever
-		id := len(storage.MockStorage) - 1
+		id, err := storageClient.Insert(urlParam)
+		if err != nil {
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			logger.Printf("storage.StorageClient.Insert: %v\n", err)
+			return
+		}
+
 		idHex := fmt.Sprintf("%x", id)
 
 		fullShortenedUrl, err := url.JoinPath("http://", r.Host, idHex)
@@ -44,6 +48,10 @@ func ShortenHandler(logger *log.Logger) http.HandlerFunc {
 			logger.Printf("Path: /shorten template.ParseFiles: %v\n", err)
 			return
 		}
-		tmpl.Execute(w, struct{ Url string }{Url: fullShortenedUrl})
+		if err := tmpl.Execute(w, struct{ Url string }{Url: fullShortenedUrl}); err != nil {
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			logger.Printf("Path: /shorten tmpl.Execute: %v\n", err)
+			return
+		}
 	}
 }

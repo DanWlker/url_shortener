@@ -13,9 +13,13 @@ import (
 
 	"url_shortener/middleware"
 	"url_shortener/routes"
+	"url_shortener/storage"
+
+	"github.com/redis/go-redis/v9"
 )
 
 func run(
+	ctx context.Context,
 	stdout io.Writer,
 ) error {
 	handler := http.NewServeMux()
@@ -27,8 +31,19 @@ func run(
 		middleware.Logging,
 	)
 
+	// redis
+	client := redis.NewClient(
+		&redis.Options{
+			Addr:     "localhost:6379",
+			Password: "",
+			DB:       0,
+		},
+	)
+
+	storageClient := storage.NewRedisClient(ctx, client)
+
 	// routes
-	if err := routes.RegisterRoutes(handler, logger); err != nil {
+	if err := routes.RegisterRoutes(handler, logger, storageClient); err != nil {
 		return fmt.Errorf("RegisterRoutes: %w", err)
 	}
 
@@ -63,6 +78,7 @@ func run(
 
 func main() {
 	if err := run(
+		context.Background(),
 		os.Stdout,
 	); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
