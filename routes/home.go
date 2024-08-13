@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -57,13 +58,19 @@ func NewHomeHandler(logger *log.Logger, storageClient storage.StorageClient) htt
 		}
 
 		url, err := storageClient.Retrieve(id64)
-		if err != nil {
+		if errors.Is(err, storage.IdNotExistError) {
 			logger.Printf("Path: / storageClient.Retrieve: %v\n", err)
 			if err := return404(w); err != nil {
 				logger.Printf("Path: / return404: %v\n", err)
 			}
 			return
 		}
+		if err != nil {
+			logger.Printf("Path: / storageClient.Retrieve: %v\n", err)
+			http.Error(w, "Something went wrong", http.StatusInternalServerError)
+			return
+		}
+
 		http.Redirect(w, r, url, http.StatusFound)
 	}
 }
