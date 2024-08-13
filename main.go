@@ -15,7 +15,8 @@ import (
 	"url_shortener/routes"
 	"url_shortener/storage"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/jackc/pgx/v5"
+	// "github.com/redis/go-redis/v9"
 )
 
 func run(
@@ -32,15 +33,31 @@ func run(
 	)
 
 	// redis
-	client := redis.NewClient(
-		&redis.Options{
-			Addr:     "localhost:6379",
-			Password: "",
-			DB:       0,
-		},
-	)
+	// client := redis.NewClient(
+	// 	&redis.Options{
+	// 		Addr:     "localhost:6379",
+	// 		Password: "",
+	// 		DB:       0,
+	// 	},
+	// )
+	//
+	// storageClient := storage.NewRedisClient(ctx, client)
 
-	storageClient := storage.NewRedisClient(ctx, client)
+	// postgres
+	db_url, ok := os.LookupEnv("DATABASE_URL")
+	if !ok {
+		return fmt.Errorf("os.LookupEnv: Cannot find DATABASE_URL in environment")
+	}
+	conn, err := pgx.Connect(ctx, db_url)
+	if err != nil {
+		return fmt.Errorf("pgx.Connect: %w", err)
+	}
+
+	storageClient := storage.NewPostgresClient(ctx, conn)
+
+	if err := storageClient.Ping(); err != nil {
+		return fmt.Errorf("storageClient.Ping: %w", err)
+	}
 
 	// routes
 	if err := routes.RegisterRoutes(handler, logger, storageClient); err != nil {
@@ -66,11 +83,17 @@ func run(
 	<-sigChan
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 1)
-	defer cancel()
+	defer cancel() // TODO: Not sure if this should happen before or after db shutdown
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Fatalf("err run: Shutdown: %s\n", err)
+		log.Fatalf("err run: Shutdown: %s\n", err) // TODO: Not sure if this should be returned or not
 	}
+
+	// shutdown postgres
+	if err := conn.Close(ctx); err != nil {
+		log.Fatalf("err run: conn.Close: %s\n", err) // TODO: Not sure if this should be returned or not, and unsure if this should be before or after context shutdown
+	}
+
 	log.Println("graceful shutdown complete")
 
 	return nil

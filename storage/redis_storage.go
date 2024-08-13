@@ -31,6 +31,14 @@ func (r *RedisClient) Retrieve(id int64) (url string, err error) {
 	return res, nil
 }
 
+func (r *RedisClient) Ping() error {
+	if _, err := r.client.Ping(r.ctx).Result(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func NewRedisClient(ctx context.Context, client *redis.Client) *RedisClient {
 	return &RedisClient{
 		ctx:    ctx,
