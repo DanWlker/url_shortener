@@ -16,9 +16,14 @@ type PostgresClient struct {
 }
 
 func (p *PostgresClient) Insert(url string) (id int64, err error) {
+	query := "insert into " + table + " (url) values (@url) returning id"
+	args := pgx.NamedArgs{
+		"url": url,
+	}
 	rows, err := p.conn.Query(
 		p.ctx,
-		fmt.Sprintf("insert into %v(url) values ('%v') returning id", table, url),
+		query,
+		args,
 	)
 	if err != nil {
 		return 0, err

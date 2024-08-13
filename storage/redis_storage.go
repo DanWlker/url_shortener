@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -24,6 +25,11 @@ func (r *RedisClient) Insert(url string) (id int64, err error) {
 
 func (r *RedisClient) Retrieve(id int64) (url string, err error) {
 	res, err := r.client.LIndex(r.ctx, urlListKey, id).Result()
+
+	if errors.Is(err, redis.Nil) {
+		return "", IdNotExistError
+	}
+
 	if err != nil {
 		return "", err
 	}
