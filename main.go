@@ -15,7 +15,7 @@ import (
 	"url_shortener/routes"
 	"url_shortener/storage"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	// "github.com/redis/go-redis/v9"
 )
 
@@ -48,12 +48,13 @@ func run(
 	if !ok {
 		return fmt.Errorf("os.LookupEnv: Cannot find DATABASE_URL in environment")
 	}
-	conn, err := pgx.Connect(ctx, db_url)
+
+	db, err := pgxpool.New(ctx, db_url)
 	if err != nil {
 		return fmt.Errorf("pgx.Connect: %w", err)
 	}
 
-	storageClient := storage.NewPostgresClient(ctx, conn)
+	storageClient := storage.NewPostgresClient(ctx, db)
 
 	if err := storageClient.Ping(); err != nil {
 		return fmt.Errorf("storageClient.Ping: %w", err)
@@ -90,9 +91,7 @@ func run(
 	}
 
 	// shutdown postgres
-	if err := conn.Close(ctx); err != nil {
-		log.Fatalf("err run: conn.Close: %s\n", err) // TODO: Not sure if this should be returned or not, and unsure if this should be before or after context shutdown
-	}
+	db.Close()
 
 	log.Println("graceful shutdown complete")
 

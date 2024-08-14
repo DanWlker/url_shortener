@@ -6,13 +6,14 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 const table = "url_shortener"
 
 type PostgresClient struct {
-	ctx  context.Context
-	conn *pgx.Conn
+	ctx context.Context
+	db  *pgxpool.Pool
 }
 
 func (p *PostgresClient) Insert(url string) (id int64, err error) {
@@ -20,7 +21,7 @@ func (p *PostgresClient) Insert(url string) (id int64, err error) {
 	args := pgx.NamedArgs{
 		"url": url,
 	}
-	rows, err := p.conn.Query(
+	rows, err := p.db.Query(
 		p.ctx,
 		query,
 		args,
@@ -41,7 +42,7 @@ func (p *PostgresClient) Insert(url string) (id int64, err error) {
 }
 
 func (p *PostgresClient) Retrieve(id int64) (url string, err error) {
-	rows, err := p.conn.Query(
+	rows, err := p.db.Query(
 		p.ctx,
 		fmt.Sprintf("select * from %v where id=%d", table, id),
 	)
@@ -62,15 +63,15 @@ func (p *PostgresClient) Retrieve(id int64) (url string, err error) {
 }
 
 func (p *PostgresClient) Ping() error {
-	if err := p.conn.Ping(p.ctx); err != nil {
+	if err := p.db.Ping(p.ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
-func NewPostgresClient(ctx context.Context, conn *pgx.Conn) *PostgresClient {
+func NewPostgresClient(ctx context.Context, db *pgxpool.Pool) *PostgresClient {
 	return &PostgresClient{
-		ctx:  ctx,
-		conn: conn,
+		ctx: ctx,
+		db:  db,
 	}
 }
