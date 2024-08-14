@@ -53,6 +53,7 @@ func run(
 	if err != nil {
 		return fmt.Errorf("pgx.Connect: %w", err)
 	}
+	defer db.Close() // TODO: I still don't know if db close should close before or after shutdown
 
 	storageClient := storage.NewPostgresClient(ctx, db)
 
@@ -87,13 +88,10 @@ func run(
 	defer cancel() // TODO: Not sure if this should happen before or after db shutdown
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		log.Fatalf("err run: Shutdown: %s\n", err) // TODO: Not sure if this should be returned or not
+		return fmt.Errorf("err run: Shutdown: %s\n", err)
 	}
 
-	// shutdown postgres
-	db.Close()
-
-	log.Println("graceful shutdown complete")
+	log.Println("graceful shutdown complete, pending defers")
 
 	return nil
 }
