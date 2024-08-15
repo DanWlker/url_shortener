@@ -1,1 +1,4 @@
 url_shortener
+tmp
+appendonlydir
+*.rdb
