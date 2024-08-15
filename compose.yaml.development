@@ -5,5 +5,7 @@ services:
       - "8000:8090"
     depends_on:
       - redis
+    volumes:
+      - .:/go/src/url_shortener
   redis:
     image: "redis:bookworm"
