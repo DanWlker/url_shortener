@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"url_shortener/storage"
+	"github.com/DanWlker/url_shortener/storage"
 )
 
 func return404(w http.ResponseWriter) error {

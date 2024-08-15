@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"url_shortener/storage"
+	"github.com/DanWlker/url_shortener/storage"
 )
 
 func RegisterRoutes(

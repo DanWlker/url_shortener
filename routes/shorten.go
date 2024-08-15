@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"url_shortener/storage"
+	"github.com/DanWlker/url_shortener/storage"
 )
 
 func ShortenHandler(logger *log.Logger, storageClient storage.StorageClient) http.HandlerFunc {

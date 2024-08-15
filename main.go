@@ -11,9 +11,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"url_shortener/middleware"
-	"url_shortener/routes"
-	"url_shortener/storage"
+	"github.com/DanWlker/url_shortener/middleware"
+	"github.com/DanWlker/url_shortener/routes"
+	"github.com/DanWlker/url_shortener/storage"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	// "github.com/redis/go-redis/v9"
