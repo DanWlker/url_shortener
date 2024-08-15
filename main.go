@@ -14,8 +14,7 @@ import (
 	"github.com/DanWlker/url_shortener/middleware"
 	"github.com/DanWlker/url_shortener/routes"
 	"github.com/DanWlker/url_shortener/storage"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	// "github.com/jackc/pgx/v5/pgxpool"
 	// "github.com/redis/go-redis/v9"
 )
 
@@ -32,6 +31,9 @@ func run(
 		middleware.Logging,
 	)
 
+	// mock
+	storageClient := storage.NewMockStorage()
+
 	// redis
 	// client := redis.NewClient(
 	// 	&redis.Options{
@@ -40,22 +42,21 @@ func run(
 	// 		DB:       0,
 	// 	},
 	// )
-	//
 	// storageClient := storage.NewRedisClient(ctx, client)
 
 	// postgres
-	db_url, ok := os.LookupEnv("DATABASE_URL")
-	if !ok {
-		return fmt.Errorf("os.LookupEnv: Cannot find DATABASE_URL in environment")
-	}
-
-	db, err := pgxpool.New(ctx, db_url)
-	if err != nil {
-		return fmt.Errorf("pgx.Connect: %w", err)
-	}
-	defer db.Close() // TODO: I still don't know if db close should close before or after shutdown
-
-	storageClient := storage.NewPostgresClient(ctx, db)
+	// db_url, ok := os.LookupEnv("DATABASE_URL")
+	// if !ok {
+	// 	return fmt.Errorf("os.LookupEnv: Cannot find DATABASE_URL in environment")
+	// }
+	//
+	// db, err := pgxpool.New(ctx, db_url)
+	// if err != nil {
+	// 	return fmt.Errorf("pgx.Connect: %w", err)
+	// }
+	// defer db.Close() // TODO: I still don't know if db close should close before or after shutdown
+	//
+	// storageClient := storage.NewPostgresClient(ctx, db)
 
 	if err := storageClient.Ping(); err != nil {
 		return fmt.Errorf("storageClient.Ping: %w", err)
