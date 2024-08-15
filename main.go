@@ -15,7 +15,7 @@ import (
 	"github.com/DanWlker/url_shortener/routes"
 	"github.com/DanWlker/url_shortener/storage"
 	// "github.com/jackc/pgx/v5/pgxpool"
-	// "github.com/redis/go-redis/v9"
+	"github.com/redis/go-redis/v9"
 )
 
 func run(
@@ -32,17 +32,17 @@ func run(
 	)
 
 	// mock
-	storageClient := storage.NewMockStorage()
+	// storageClient := storage.NewMockStorage()
 
 	// redis
-	// client := redis.NewClient(
-	// 	&redis.Options{
-	// 		Addr:     "localhost:6379",
-	// 		Password: "",
-	// 		DB:       0,
-	// 	},
-	// )
-	// storageClient := storage.NewRedisClient(ctx, client)
+	client := redis.NewClient(
+		&redis.Options{
+			Addr:     "redis:6379",
+			Password: "",
+			DB:       0,
+		},
+	)
+	storageClient := storage.NewRedisClient(ctx, client)
 
 	// postgres
 	// db_url, ok := os.LookupEnv("DATABASE_URL")

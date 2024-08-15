@@ -1,6 +1,6 @@
 FROM golang:bookworm
 
-RUN go install github.com/air-verse/air@latest
+# RUN go install github.com/air-verse/air@latest
 RUN go install github.com/DanWlker/url_shortener@main
 
 ENV DATABASE_URL=""
@@ -11,4 +11,5 @@ WORKDIR "$APP_HOME"
 
 EXPOSE 8090
 
-CMD ["air"]
+# CMD ["air"]
+CMD ["go", "run", "main.go"]
