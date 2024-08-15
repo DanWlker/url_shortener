@@ -1,7 +1,7 @@
 FROM golang:bookworm
 
 RUN go install github.com/air-verse/air@latest
-RUN go install github.com/DanWlker/url_shortener@docker_test
+RUN go install github.com/DanWlker/url_shortener@main
 
 ENV DATABASE_URL=""
 
