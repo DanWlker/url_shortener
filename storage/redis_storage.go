@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -46,6 +47,7 @@ func (r *RedisClient) Ping() error {
 }
 
 func NewRedisClient(ctx context.Context, client *redis.Client) *RedisClient {
+	fmt.Println("Using redis client")
 	return &RedisClient{
 		ctx:    ctx,
 		client: client,

@@ -1,5 +1,7 @@
 package storage
 
+import "fmt"
+
 type MockStorage struct {
 	data []string
 }
@@ -22,5 +24,6 @@ func (m *MockStorage) Ping() error {
 }
 
 func NewMockStorage() *MockStorage {
+	fmt.Println("Using mock storage client")
 	return &MockStorage{}
 }

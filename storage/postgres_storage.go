@@ -70,6 +70,7 @@ func (p *PostgresClient) Ping() error {
 }
 
 func NewPostgresClient(ctx context.Context, db *pgxpool.Pool) *PostgresClient {
+	fmt.Println("Using postgres client")
 	return &PostgresClient{
 		ctx: ctx,
 		db:  db,
