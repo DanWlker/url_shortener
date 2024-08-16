@@ -7,3 +7,5 @@ services:
       - redis
   redis:
     image: "redis:bookworm"
+    volumes:
+      - ./tempredis:/data
