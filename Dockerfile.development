@@ -11,5 +11,5 @@ WORKDIR "$APP_HOME"
 
 EXPOSE 8090
 
-CMD ["go", "run", "main.go"]
-# CMD ["air"]
+# CMD ["go", "run", "main.go"]
+CMD ["air"]

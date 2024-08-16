@@ -1,21 +1,15 @@
 FROM golang:bookworm AS builder
 
-ENV APP_HOME="/go/src/url_shortener"
-
-WORKDIR "$APP_HOME"
-COPY . .
+WORKDIR /app
+COPY . /app/
 
 RUN go mod download
 RUN go mod verify
-RUN go build -o url_shortener
+RUN CGO_ENABLED=0 go build -o /go/bin/app
 
-# Second stage
-FROM golang:bookworm
+FROM gcr.io/distroless/static-debian12
 
-ENV APP_HOME="/go/src/url_shortener"
-WORKDIR "$APP_HOME"
+COPY --from=builder go/bin/app /
+COPY --from=builder app/templates /templates
 
-COPY --from=builder $APP_HOME $APP_HOME
-
-EXPOSE 8090
-CMD ["./url_shortener"]
+CMD ["/app"]
